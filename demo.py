@@ -37,4 +37,21 @@ def type_message(s):
         event = s.wait_for_event
         if event.direction == "right":
             s.show_message("Vous pouver")
-    
+
+def show_number(num, s):
+    """
+    pre : num est un entier positif a un chiffre.
+    Des images .png de tous les chiffres doivent exister dans un meme dossier.
+    Si ce dernier n'est pas le meme que celui du programme, il doit etre
+    defini au depart par une variable pic_dir.
+    pic_dir doit se terminer par un "/" ou un "\"
+    s est un SenseHat.
+    post : affiche une image du chiffre "num".
+    """
+    #Si pic_dir n'est pas defini, path est un string vide
+    try:
+        path = pic_dir
+    except NameError:
+        path = ""
+    filename = "{0}{1}.png".format(path, num)
+    s.load_image(filename)
