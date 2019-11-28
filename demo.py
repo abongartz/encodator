@@ -5,6 +5,16 @@ class SenseHatEncodator(SenseHat):
     
     def __init__(self):
         super().__init__()
+        self.__menu = {0 : "Help", 1 : "Lire le message", 2 : "Nouveau message", "Lire le message" : "$display_msg",\
+                       "Nouveau message" : "$register_message"}
+        
+    def display_msg(self):
+        self.show_message("Merci d'entrer le mot de passe.")
+        #A faire par Lucas
+        
+    def register_message(self):
+        self.show_message("Veuillez entrer le message.")
+        numbers = r
         
     def type_message(self):
         #Non fini
@@ -49,33 +59,6 @@ class SenseHatEncodator(SenseHat):
         
         else:
             self.show_message("There is no message", text_colour=[255, 0, 0])
-
-class Menu:
-    
-    def __init__(self):
-        """
-        pre : Un fichier "menu_frames.txt" existe et contiens
-        les differents messages de cette maniere :
-        1:message_1
-        2:message_2
-        etc
-        post : cree un objet Menu
-        """
-        self.__frames = []  #Attribut servant a savoir quel message afficher pour chaque option du menu
-                            
-    def import_frames(self, filename):
-        #Non fini
-        """
-        pre : le ficchier "filename" existe et contiens
-        les differents messages de cette maniere :
-        0:message_0
-        1:message_1
-        etc
-        post : definit l'attribut frame
-        """
-        with open(filename, "r") as file:
-            raw = file.readlines()
-            
         
 def message_exists():
     """
@@ -99,3 +82,6 @@ def register_message(content):
     """
     with open("message.txt", "w") as file:
         file.writelines(content)
+        
+if __name__ == "__main__":
+    pass
