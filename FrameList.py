@@ -19,17 +19,25 @@ class FrameList:
     
     def tail_end(self):
         return self.__tail_end
+    
+    def lenght(self):
+        return self.__lenght
         
     def add_last(self, frame):
         """
-        pre : frame est un Frame.
+        pre : frame est un Frame dont les attributs __next et __last sont None.
         post : ajoute Frame a self.
         Ce Frame sera reference par l'ancien Frame self.__tail_end et deviendra le nouveau self.__tail_end
         """
-        #On attache frame au reste du LinkedList
-        self.tail_end().setnext(frame)
-        frame.setlast(self.tail_end())
-        self.__tail_end = frame
+        #Si le LinkedList est vide
+        if self.head() == None:
+            self.__head = frame
+            self.__tail_end = frame
+        #Sinon, on attache frame au reste du LinkedList
+        else:
+            self.tail_end().setnext(frame)
+            frame.setlast(self.tail_end())
+            self.__tail_end = frame
         self.__lenght += 1
     
 class Frame:
