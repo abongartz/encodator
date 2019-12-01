@@ -1,11 +1,12 @@
 from sense_hat import SenseHat
+from subprocess import call
 from FrameList import FrameList, Frame
 import time
 
 class SenseHatEncodator(SenseHat):
     
     def __init__(self):
-        super().__init__()
+        super(SenseHatEncodator, self).__init__()
         
     def display_msg(self):
         self.show_message("Merci d'entrer le mot de passe.")
@@ -76,9 +77,11 @@ def handle_wait_for_event(event):
             return current_frame.next()
         if event.direction == "left":
             return current_frame.last()
+        if event.direction == "down" and current_frame.down == None:
+            call("sudo shutdown -h now", shell=True)    #TODO : ajouter une demande de confirmation
         
 if __name__ == "__main__":
-    #Creation des FrameLists qui composent les menus (à remplacer plus tard)
+    #Creation des FrameLists qui composent les menus (a remplacer plus tard)
     main_menu = FrameList()
     (a, b) = (Frame(cargo = "Lire le message", up = "display_msg"),\
               Frame(cargo = "Nouveau message", up = "register_message"))
@@ -97,7 +100,7 @@ if __name__ == "__main__":
         event = s.stick.wait_for_event()
         print(event)
         rcf = handle_wait_for_event(event)
-        if rcf == None:       #Si current_frame ne change pas, on ne réaffiche pas le meme Frame.
+        if rcf == None:       #Si current_frame ne change pas, on ne reaffiche pas le meme Frame.
             message_showed = False
         else:
             message_showed = True
