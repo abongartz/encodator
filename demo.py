@@ -1,12 +1,11 @@
 from sense_hat import SenseHat
+from FrameList import FrameList, Frame
 import time
 
 class SenseHatEncodator(SenseHat):
     
     def __init__(self):
         super().__init__()
-        self.__menu = {0 : "Help", 1 : "Lire le message", 2 : "Nouveau message", "Lire le message" : "$display_msg",\
-                       "Nouveau message" : "$register_message"}
         
     def display_msg(self):
         self.show_message("Merci d'entrer le mot de passe.")
@@ -27,23 +26,6 @@ class SenseHatEncodator(SenseHat):
             event = self.wait_for_event
             if event.direction == "right":
                 self.show_message("Vous pouver")
-                
-    def show_number(self, num):
-        """
-        pre : num est un entier positif a un chiffre.
-        Des images .png de tous les chiffres doivent exister dans un meme dossier.
-        Si ce dernier n'est pas le meme que celui du programme, il doit etre
-        defini au depart par une variable pic_dir.
-        pic_dir doit se terminer par un "/" ou un "\".
-        post : affiche une image du chiffre "num".
-        """
-        #Si pic_dir n'est pas defini, path est un string vide
-        try:
-            path = pic_dir
-        except NameError:
-            path = ""
-        filename = "{0}{1}.png".format(path, num)
-        self.load_image(filename)
         
     def show_registered_message(self):
         """
@@ -83,5 +65,40 @@ def register_message(content):
     with open("message.txt", "w") as file:
         file.writelines(content)
         
+def handle_wait_for_event(event):
+    """
+    pre : event est un objet SenseHat.stick.
+    post : retourne le nouveau Frame a afficher.
+    Ne gere pour le moment que les mouvements gauche droite du joistick.
+    """
+    if event.action != "released":
+        if event.direction == "right":
+            return current_frame.next()
+        if event.direction == "left":
+            return current_frame.last()
+        
 if __name__ == "__main__":
-    pass
+    #Creation des FrameLists qui composent les menus (à remplacer plus tard)
+    main_menu = FrameList()
+    (a, b) = (Frame(cargo = "Lire le message", up = "display_msg"),\
+              Frame(cargo = "Nouveau message", up = "register_message"))
+    main_menu.add_last(a)
+    main_menu.add_last(b)
+    #Creation du SenseHat
+    s = SenseHatEncodator()
+    #Programme principal
+    running = True
+    current_menu = main_menu
+    current_frame = a
+    message_showed = True
+    while running:
+        if message_showed:    #Empeche les inputs ne changeant pas le message afficher de faire celui-ci se repeter.
+            s.show_message(text_string = str(current_frame), scroll_speed = 0.05)
+        event = s.stick.wait_for_event()
+        print(event)
+        rcf = handle_wait_for_event(event)
+        if rcf == None:       #Si current_frame ne change pas, on ne réaffiche pas le meme Frame.
+            message_showed = False
+        else:
+            message_showed = True
+            current_frame = rcf
