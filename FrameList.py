@@ -2,17 +2,20 @@ class FrameList:
     """
     Liste chainee de Frames.
     """
-    def __init__(self):
+    def __init__(self, down = None):
         """
         pre : -
         post : initialise un objet FrameList.
         self.__lenght est le nombre de Frames que contient self.
         self.__head est le premier Frame de self.
         self.__tail_end est le dernier Frame de self.
+        self.__down peut être le Frame auquel revoient tous les attributs __down
+        des Frames contenus dans le FrameList.
         """
         self.__lenght = 0
         self.__head = None
         self.__tail_end = None
+        self.__down = down
         
     def head(self):
         return self.__head
@@ -22,6 +25,9 @@ class FrameList:
     
     def lenght(self):
         return self.__lenght
+    
+    def setdown(self, down):
+        self.__down = down
         
     def add_last(self, frame):
         """
@@ -39,6 +45,7 @@ class FrameList:
             frame.setlast(self.tail_end())
             self.__tail_end = frame
         self.__lenght += 1
+        frame.setdown(self.__down)
     
 class Frame:
     def __init__(self, cargo = None, nxt = None, last = None, up = None, down = None):
@@ -75,3 +82,6 @@ class Frame:
         
     def setlast(self, last):
         self.__last = last
+        
+    def setdown(self, down):
+        self.__down = down
