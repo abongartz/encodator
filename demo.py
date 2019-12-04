@@ -42,6 +42,22 @@ class SenseHatEncodator(SenseHat):
         
         else:
             self.show_message("There is no message", text_colour=[255, 0, 0])
+            
+    def display_proto_message(self):
+        """
+        pre : -
+        post : affiche le message contenu dans le fichier "proto-message.txt".
+        Affiche un message d'erreur s'il n'y en a pas.
+        """
+        try:
+            with open("proto-message.txt", "r") as file:
+                proto_message = file.readlines[0]
+                if proto_message.strip() == "":
+                    self.show_message("Aucun message enregistre", scroll_speed = 0.05)
+                else:
+                    self.show_message(proto_message, scroll_speed = 0.05)
+        except FileNotFoundError:
+            self.show_message("Aucun message enregistre", scroll_speed = 0.05)
         
 def message_exists():
     """
@@ -56,15 +72,6 @@ def message_exists():
                 return True
     except FileNotFoundError:
         return False    #On retourne False si le fichier message.txt n'existe pas.
-
-def register_message(content):
-    """
-    pre : content est une liste de strings.
-    post : cree un nouveau fichier message.txt avec comme contenu "content"
-    qui ecrase l'ancien fichier message.txt si ce dernier existait.
-    """
-    with open("message.txt", "w") as file:
-        file.writelines(content)
         
 def handle_wait_for_event(event, frame):
     """
@@ -73,17 +80,37 @@ def handle_wait_for_event(event, frame):
     post : retourne le nouveau Frame a afficher.
     Ne gere pour le moment que les mouvements gauche droite du joistick.
     """
+    to_return = None
     if event.action != "released":
         if event.direction == "right":
-            return frame.next()
-        if event.direction == "left":
-            return frame.last()
-        if event.direction == "down" and current_frame.down == None:
+            to_return = frame.next()
+        elif event.direction == "left":
+            to_return = frame.last()
+        elif event.direction == "down" and frame.down() == None:
             call("sudo shutdown -h now", shell=True)    #TODO : ajouter une demande de confirmation
-        if event.direction == "up" and current_frame.down != None:
-            return frame.up().head()
-        if event.direction == "down" and current_frame.down != None:
-            return frame.down()
+        elif event.direction == "up" and frame.up() != None:
+            try:
+                to_return = frame.up().head()
+            except AttributeError:
+                to_return = str(frame)
+        elif event.direction == "down" and frame.down() != None:
+            to_return = frame.down()
+        if str(to_return)[0] == "$":
+            handle_methods(to_return, frame)
+            return None
+        else:
+            return to_return
+            
+def handle_methods(string, frame):
+    """
+    pre : string commence par $.
+    frame est un Frame.
+    post : execute la fonction designee par string
+    """
+    function = string[1:]
+    if function == append_new_message:
+        frame.append_new_message("proto-message.txt")
+
 if __name__ == "__main__":
     #Creation des FrameLists qui composent les menus (a remplacer plus tard)
     main_menu = FrameList()
@@ -92,6 +119,7 @@ if __name__ == "__main__":
     keyboard_menu_frames = []
     for i in range(10):
         frame = Frame(cargo = i)    #TODO : define a up attribute here
+        frame.setup("$append_new_message")
         keyboard_menu_frames.append(frame)
     (a1, a2, a3, a4) = (Frame(cargo = "Entrer un message", up = keyboard_menu), Frame(cargo = "Entrer le mot de passe"),\
                         Frame(cargo = "Voir le message"), Frame(cargo = "Valider"))
@@ -120,7 +148,10 @@ if __name__ == "__main__":
     message_showed = True
     while running:
         if message_showed:    #Empeche les inputs ne changeant pas le message afficher de faire celui-ci se repeter.
-            s.show_message(text_string = str(current_frame), scroll_speed = 0.05)
+            if len(str(current_frame)) > 1:    #On separe les characteres des autres strings
+                s.show_message(text_string = str(current_frame), scroll_speed = 0.05)
+            else:
+                s.show_letter(str(current_frame))
         event = s.stick.wait_for_event()
         print(event)
         rcf = handle_wait_for_event(event, current_frame)
