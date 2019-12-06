@@ -73,10 +73,11 @@ def message_exists():
     except FileNotFoundError:
         return False    #On retourne False si le fichier message.txt n'existe pas.
         
-def handle_wait_for_event(event, frame):
+def handle_wait_for_event(event, frame, s):
     """
     pre : event est un objet SenseHat.stick.
     frame est un objet Frame.
+    s est un SenseHatEncodator.
     post : retourne le nouveau Frame a afficher.
     Ne gere pour le moment que les mouvements gauche droite du joistick.
     """
@@ -92,24 +93,28 @@ def handle_wait_for_event(event, frame):
             try:
                 to_return = frame.up().head()
             except AttributeError:
-                to_return = str(frame)
+                to_return = str(frame.up())
         elif event.direction == "down" and frame.down() != None:
             to_return = frame.down()
         if str(to_return)[0] == "$":
-            handle_methods(to_return, frame)
+            handle_methods(to_return, frame, s)
             return None
         else:
             return to_return
             
-def handle_methods(string, frame):
+def handle_methods(string, frame, s):
     """
     pre : string commence par $.
     frame est un Frame.
+    s est un SenseHatEncodator
     post : execute la fonction designee par string
     """
     function = string[1:]
     if function == append_new_message:
         frame.append_new_message("proto-message.txt")
+    if function == display_proto_message:
+        s.display_proto_message()
+        
 
 if __name__ == "__main__":
     #Creation des FrameLists qui composent les menus (a remplacer plus tard)
@@ -122,7 +127,7 @@ if __name__ == "__main__":
         frame.setup("$append_new_message")
         keyboard_menu_frames.append(frame)
     (a1, a2, a3, a4) = (Frame(cargo = "Entrer un message", up = keyboard_menu), Frame(cargo = "Entrer le mot de passe"),\
-                        Frame(cargo = "Voir le message"), Frame(cargo = "Valider"))
+                        Frame(cargo = "Voir le message", up = "$display_proto_message"), Frame(cargo = "Valider"))
     new_message_menu_frames = [a1, a2, a3, a4]
     (b, a) = (Frame(cargo = "Lire le message"),\
               Frame(cargo = "Nouveau message", up = new_message_menu))
@@ -154,7 +159,7 @@ if __name__ == "__main__":
                 s.show_letter(str(current_frame))
         event = s.stick.wait_for_event()
         print(event)
-        rcf = handle_wait_for_event(event, current_frame)
+        rcf = handle_wait_for_event(event, current_frame, s)
         if rcf == None:       #Si current_frame ne change pas, on ne reaffiche pas le meme Frame.
             message_showed = False
         else:
